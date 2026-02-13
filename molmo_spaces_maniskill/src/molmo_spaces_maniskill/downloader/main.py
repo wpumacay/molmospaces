@@ -41,6 +41,15 @@ SOURCE_TO_VERSION = {
             "holodeck-objaverse-val": "20260128",
         },
     },
+    "robots": {
+        "mjcf": {
+            "rby1": "20251224",
+            "rby1m": "20251224",
+            "franka_droid": "20260127",
+            "floating_rum": "20251110",
+            "floating_robotiq": "20260208_retry4",
+        }
+    },
 }
 
 TYPE_TO_URL: dict[str, str] = {
@@ -65,6 +74,16 @@ class DownloadArgs:
             "procthor-objaverse-val",
             "holodeck-objaverse-train",
             "holodeck-objaverse-val",
+        ]
+    ] = field(default_factory=list)
+
+    robots: list[
+        Literal[
+            "rby1",
+            "rby1m",
+            "franka_droid",
+            "floating_rum",
+            "floating_robotiq",
         ]
     ] = field(default_factory=list)
 
@@ -94,7 +113,7 @@ def main() -> int:
     print(f"[INFO]: saving to directory '{args.install_dir}'")
     print(f"[INFO]: downloading '{args.type}' version of the assets")
 
-    sources_to_version = dict(objects=dict(), scenes=dict())
+    sources_to_version = dict(objects=dict(), scenes=dict(), robots=dict())
     sources_to_version["objects"]["thor"] = SOURCE_TO_VERSION["objects"][args.type]["thor"]
     for dataset_id in args.assets:
         sources_to_version["objects"][dataset_id] = SOURCE_TO_VERSION["objects"][args.type][
@@ -105,6 +124,11 @@ def main() -> int:
         sources_to_version["scenes"][dataset_id] = SOURCE_TO_VERSION["scenes"][args.type][
             dataset_id
         ]
+
+    if sources_robots_for_type := SOURCE_TO_VERSION["robots"].get(args.type):
+        for dataset_id in args.robots:
+            if dataset_id in sources_robots_for_type:
+                sources_to_version["robots"][dataset_id] = sources_robots_for_type[dataset_id]
 
     cache_dir = args.cache_dir / args.type
     cache_lock_file = cache_dir / ".lock"
