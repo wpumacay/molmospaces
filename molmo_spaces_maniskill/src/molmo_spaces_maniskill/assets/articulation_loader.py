@@ -358,6 +358,7 @@ class MjcfAssetArticulationLoader(Generic[SceneT]):
         joints_info: list[MjcfJointInfo] = []
         for jnt_spec in mjs_body.joints:
             assert isinstance(jnt_spec, mj.MjsJoint)
+            limits = np.deg2rad(jnt_spec.range) if self._spec.compiler.degree else jnt_spec.range
             joints_info.append(
                 MjcfJointInfo(
                     name=jnt_spec.name,
@@ -365,7 +366,7 @@ class MjcfAssetArticulationLoader(Generic[SceneT]):
                     pos=jnt_spec.pos,
                     axis=jnt_spec.axis,
                     limited=jnt_spec.limited,
-                    limits=jnt_spec.range,
+                    limits=limits,
                     frictionloss=float(jnt_spec.frictionloss),
                     damping=float(jnt_spec.damping),
                 )
