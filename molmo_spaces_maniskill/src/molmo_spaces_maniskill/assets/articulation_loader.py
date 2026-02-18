@@ -193,7 +193,6 @@ def add_visuals_to_sapien_link(
                 if mesh_spec is not None:
                     mesh_path = mj_model_dir / mj_spec.meshdir / mesh_spec.file
                     material = materials.get(vis_spec.material)
-                    print(f"{mesh_path=}")
                     link.add_visual_from_file(
                         pose=local_pose,
                         filename=mesh_path.as_posix(),

@@ -1,2 +1,3 @@
-def hello() -> str:
-    return "Hello from sapien-thor!"
+from pathlib import Path
+
+MOLMOSPACES_MANISKILL_BASE_DIR = Path(__file__).parent
