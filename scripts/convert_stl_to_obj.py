@@ -1,3 +1,4 @@
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -19,8 +20,7 @@ def main() -> int:
         print(f"Given model file @ '{args.model}' is not a valid file")
         return 1
     if not args.output_dir.is_dir():
-        print(f"Given output directory @ '{args.output_dir}' is not a valid directory")
-        return 1
+        args.output_dir.mkdir(exist_ok=True)
 
     spec = mj.MjSpec.from_file(args.model.as_posix())
 
@@ -54,7 +54,24 @@ def main() -> int:
     with open(new_model, "w") as fhandle:
         fhandle.write(spec.to_xml())
 
-    print(f"Successfully created {new_model}")
+    new_assets_dir = args.output_dir / "assets"
+    new_assets_dir.mkdir(exist_ok=True)
+
+    assets_deps: list[Path] = []
+    for asset_dep in mj.mju_getXMLDependencies(new_model.as_posix()):
+        asset_path = Path(asset_dep)
+        if asset_path.stem == new_model.stem:
+            continue
+        assets_deps.append(asset_path)
+
+    for src_asset in assets_deps:
+        dst_asset = new_assets_dir / src_asset.name
+        shutil.copyfile(src_asset, dst_asset)
+
+    dst_model = args.output_dir / args.model.name
+    shutil.copyfile(new_model, dst_model)
+
+    print(f"Successfully created {dst_model}")
 
     return 0
 
