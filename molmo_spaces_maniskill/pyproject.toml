@@ -6,7 +6,7 @@ readme = "README.md"
 authors = []
 requires-python = ">=3.10"
 dependencies = [
-    "mani-skill-nightly",
+    "mani-skill @ git+https://github.com/wpumacay/ManiSkill.git@dev-molmospaces",
     "mujoco",
     "tyro",
     "msgspec",
@@ -63,14 +63,14 @@ select = [
     "PL",
 ]
 ignore = [
-    "C408", # dict() calls
-    "C901", # function complexity
-    "E501", # line too long (handled by line-length setting)
-    "B006", # defaults shouldn't be mutable
-    "UP015", # redundant mode arguments in open should be fine for now
-    "SIM117", # allow nested with statements for now
-    "SIM102", # don't be picky about nested if statements
-    "SIM114", # don't be picky about merging if branches using or
+    "C408",    # dict() calls
+    "C901",    # function complexity
+    "E501",    # line too long (handled by line-length setting)
+    "B006",    # defaults shouldn't be mutable
+    "UP015",   # redundant mode arguments in open should be fine for now
+    "SIM117",  # allow nested with statements for now
+    "SIM102",  # don't be picky about nested if statements
+    "SIM114",  # don't be picky about merging if branches using or
     "PLR0912",
     "PLR0913",
     "PLR0915",
@@ -82,3 +82,6 @@ convention = "google"
 
 [tool.ty.environment]
 extra-paths = ["./typings"]
+
+[tool.pyright]
+stubPath = "./typings"
