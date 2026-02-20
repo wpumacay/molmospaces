@@ -6,6 +6,8 @@ from typing import Generic, cast
 import mujoco as mj
 import sapien
 from mani_skill.envs.scene import ManiSkillScene
+from mani_skill.utils.building import ActorBuilder, ArticulationBuilder
+from mani_skill.utils.structs import Actor, Articulation
 from sapien import Pose, Scene
 from sapien.physx import PhysxArticulation
 
@@ -31,11 +33,11 @@ class MjcfSceneLoader(Generic[SceneT]):
 
     def load(
         self, scene_path: Path
-    ) -> tuple[dict[str, sapien.Entity], dict[str, PhysxArticulation]]:
+    ) -> tuple[dict[str, sapien.Entity | Actor], dict[str, PhysxArticulation | Articulation]]:
         assert self._scene is not None, "Must assign a valid Sapien scene before loading"
 
-        actors: dict[str, sapien.Entity] = {}
-        articulations: dict[str, PhysxArticulation] = {}
+        actors: dict[str, sapien.Entity | Actor] = {}
+        articulations: dict[str, PhysxArticulation | Articulation] = {}
 
         articulation_loader = MjcfAssetArticulationLoader[SceneT](self._scene)
         actor_loader = MjcfAssetActorLoader[SceneT](self._scene)
@@ -64,8 +66,11 @@ class MjcfSceneLoader(Generic[SceneT]):
                     is_part_of_scene=True,
                 )
                 builder.set_initial_pose(world_pose)
-                articulations[name] = builder.build()
-                articulations[name].set_name(name)
+                if type(builder) is sapien.ArticulationBuilder:
+                    articulations[name] = builder.build()
+                    articulations[name].set_name(name)  # type: ignore
+                elif type(builder) is ArticulationBuilder:
+                    articulations[name] = builder.build(name=name)
                 self._num_articulations += 1
             else:
                 if root_body.name == "floor":
@@ -79,7 +84,10 @@ class MjcfSceneLoader(Generic[SceneT]):
                 )
                 builder.set_name(name)
                 builder.set_initial_pose(world_pose)
-                actors[name] = builder.build()
+                if type(builder) is sapien.ActorBuilder:
+                    actors[name] = builder.build()
+                elif type(builder) is ActorBuilder:
+                    actors[name] = builder.build(name)
                 self._num_actors += 1
 
         for light in spec.worldbody.lights:
