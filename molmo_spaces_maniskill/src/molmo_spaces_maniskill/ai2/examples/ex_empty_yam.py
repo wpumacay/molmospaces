@@ -1,28 +1,25 @@
 from dataclasses import dataclass
-from pathlib import Path
+from typing import Literal
 
 import gymnasium as gym
 import sapien
 import tyro
 
-from molmo_spaces_maniskill.core.env import MolmoSpacesEnv
+from molmo_spaces_maniskill.ai2.env import MolmoSpacesEmptyEnv
 
 
 @dataclass
 class Args:
-    scene_file: Path
+    env_id: Literal["MolmoSpacesEmptyEnv-v0"] = "MolmoSpacesEmptyEnv-v0"
+    robot_id: Literal["i2rt-yam", "bi-i2rt-yam", "franka-droid"] = "i2rt-yam"
 
 
 def main() -> int:
     args = tyro.cli(Args)
 
-    if not args.scene_file.is_file():
-        print(f"[ERROR]: given scene file '{args.scene_file}' is not a valid file")
-        return 1
-
-    env = gym.make("MolmoSpacesEnv-v0", render_mode="human", scene_file=args.scene_file)
-    if not isinstance(env.unwrapped, MolmoSpacesEnv):
-        print("[WARN]: env wrapper should be of type 'MolmoSpacesEnv'")
+    env = gym.make(args.env_id, render_mode="human", robot_uids=args.robot_id)
+    if not isinstance(env.unwrapped, MolmoSpacesEmptyEnv):
+        print("[WARN]: env wrapper should be of type 'MolmoSpacesEmptyEnv'")
 
     _, _ = env.reset()
     viewer = env.render()
