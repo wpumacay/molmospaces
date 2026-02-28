@@ -30,8 +30,7 @@ class PI_Policy(InferencePolicy):
         self.grasping_type = exp_config.policy_config.grasping_type
         self.chunk_size = exp_config.policy_config.chunk_size
         self.grasping_threshold = exp_config.policy_config.grasping_threshold
-
-        self.prepare_model()
+        self.model = None  # don't init model till inference to allow multiprocessing
 
     def reset(self):
         self.actions_buffer = None
@@ -94,7 +93,7 @@ class PI_Policy(InferencePolicy):
 
     def obs_to_model_input(self, obs):
         # self.render(obs)
-        prompt = self.prompt_sampler.get_prompt(self.task)
+        prompt = self.prompt_sampler.get_prompt(self.task).lower()
 
         grip = np.clip(obs["qpos"]["gripper"][0] / 0.824033, 0, 1)
         exo_camera_key = "droid_shoulder_light_randomization" if "droid_shoulder_light_randomization" in obs else "exo_camera_1"
@@ -113,6 +112,8 @@ class PI_Policy(InferencePolicy):
         return model_input
 
     def inference_model(self, model_input):
+        if self.model is None:
+            self.prepare_model()
         if self.starting_time is None:
             self.starting_time = time.time()
         if self.actions_buffer is None or self.current_buffer_index >= self.chunk_size:
