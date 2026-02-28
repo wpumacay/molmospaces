@@ -11,7 +11,13 @@ from molmo_spaces_maniskill.ai2.env import MolmoSpacesEmptyEnv
 @dataclass
 class Args:
     env_id: Literal["MolmoSpacesEmptyEnv-v0"] = "MolmoSpacesEmptyEnv-v0"
-    robot_id: Literal["i2rt-yam", "bi-i2rt-yam", "franka-droid"] = "i2rt-yam"
+    robot_id: Literal[
+        "i2rt-yam",
+        "i2rt-yam-linear",
+        "bi-i2rt-yam",
+        "bi-i2rt-yam-linear",
+        "franka-droid",
+    ] = "i2rt-yam"
 
 
 def main() -> int:

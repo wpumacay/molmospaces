@@ -17,7 +17,7 @@ class MolmoSpacesEmptyEnv(BaseEnv):
         "bi-i2rt-yam",
     ]
 
-    agent: I2RTYam | BiI2RTYam | FrankaDroid
+    agent: I2RTYam | BiI2RTYam | FrankaDroid  # type: ignore
 
     def __init__(
         self, *args, robot_uids: str | BaseAgent | list[str | BaseAgent] | None = None, **kwargs

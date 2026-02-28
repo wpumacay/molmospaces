@@ -2,6 +2,11 @@ from pathlib import Path
 
 import sapien
 from mani_skill.agents.base_agent import BaseAgent
+from mani_skill.agents.controllers import (
+    PDJointPosControllerConfig,
+    PDJointPosMimicControllerConfig,
+)
+from mani_skill.agents.controllers.base_controller import ControllerConfig
 from mani_skill.agents.registration import register_agent
 from mani_skill.envs.scene import ManiSkillScene
 from mani_skill.utils.building import ArticulationBuilder
@@ -78,14 +83,62 @@ class I2RTYam(MolmoSpacesAgent):
     uid = "i2rt-yam"
     mjcf_path = "assets/mjcf/robots/i2rt_yam/yam.xml"
 
+    @property
+    def _controller_configs(self) -> dict[str, ControllerConfig | dict[str, ControllerConfig]]:
+        arm_joint_pos = PDJointPosControllerConfig(
+            joint_names=[
+                "joint1",
+                "joint2",
+                "joint3",
+                "joint4",
+                "joint5",
+                "joint6",
+            ],
+            lower=None,
+            upper=None,
+            stiffness=1e3,
+            damping=1e2,
+            force_limit=100,
+            normalize_action=False,
+        )
+        gripper_joint_pos = PDJointPosMimicControllerConfig(
+            joint_names=[
+                "left_finger",
+                "right_finger",
+            ],
+            lower=None,
+            upper=None,
+            stiffness=500,
+            damping=50,
+            force_limit=100,
+            normalize_action=False,
+            # mimic={
+            #     "right_finger": {"joint": "left_finger"}
+            # }
+        )
+
+        return dict(pd_joint_pos=dict(arm=arm_joint_pos, gripper=gripper_joint_pos))
+
+
+@register_agent()
+class I2RTYamLinear(MolmoSpacesAgent):
+    uid = "i2rt-yam-linear"
+    mjcf_path = "assets/mjcf/robots/i2rt_yam/yam_linear.xml"
+
 
 @register_agent()
 class BiI2RTYam(MolmoSpacesAgent):
     uid = "bi-i2rt-yam"
-    mjcf_path = "assets/mjcf/robots/i2rt_yam/bimanual_yam_ai2.xml"
+    mjcf_path = "assets/mjcf/robots/i2rt_yam/bimanual_yam.xml"
+
+
+@register_agent()
+class BiI2RTYamLinear(MolmoSpacesAgent):
+    uid = "bi-i2rt-yam-linear"
+    mjcF_path = "assets/mjcf/robots/i2rt_yam/bimanual_yam_linear.xml"
 
 
 @register_agent()
 class FrankaDroid(MolmoSpacesAgent):
     uid = "franka-droid"
-    mjcf_path = "assets/mjcf/robots/franka_droid/model.xml"
+    mjcf_path = "assets/mjcf/robots/franka_droid/model_full.xml"

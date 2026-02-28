@@ -44,8 +44,8 @@ def main() -> int:
         stl_path = info.path
         obj_path = stl_path.parent / f"{stl_path.stem}.obj"
 
-        tmesh = trimesh.load(stl_path)
-        tmesh.export(obj_path, file_type="obj")
+        tmesh = trimesh.load(stl_path.resolve())
+        tmesh.export(obj_path.resolve(), file_type="obj")
 
         info.mesh.file = obj_path.relative_to(args.model.parent / spec.meshdir).as_posix()
 

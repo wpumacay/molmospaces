@@ -13,8 +13,8 @@ from .common import (
 
 
 class MjcfAssetRobotLoader(MjcfAssetArticulationLoader):
-    def __init__(self, scene: SceneT | None = None):
-        super().__init__(scene)
+    def __init__(self, scene: SceneT | None = None, use_colliders_as_visuals: bool = False):
+        super().__init__(scene, use_colliders_as_visuals)
 
     def load_from_spec(
         self,

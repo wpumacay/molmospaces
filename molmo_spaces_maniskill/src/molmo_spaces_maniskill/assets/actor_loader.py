@@ -34,7 +34,7 @@ def add_visuals_to_actor_builder(
 ) -> None:
     visual_specs = get_visual_specs_from_body(mj_body)
     for vis_spec in visual_specs:
-        tf_geom_to_body = Pose(p=tuple(vis_spec.pos), q=tuple(vis_spec.quat))
+        tf_geom_to_body = Pose(p=tuple(vis_spec.pos), q=tuple(get_orientation(vis_spec)))
         match vis_spec.type:
             case mj.mjtGeom.mjGEOM_BOX:
                 builder.add_box_visual(
@@ -104,7 +104,7 @@ def add_colliders_to_actor_builder(
 ) -> None:
     colliders_specs = get_collider_specs_from_body(mj_body)
     for col_spec in colliders_specs:
-        tf_geom_to_body = Pose(p=tuple(col_spec.pos), q=tuple(col_spec.quat))
+        tf_geom_to_body = Pose(p=tuple(col_spec.pos), q=tuple(get_orientation(col_spec)))
         physx_material: PhysxMaterial | None = None
         if col_spec.condim == 3:  # noqa: PLR2004
             physx_material = PhysxMaterial(

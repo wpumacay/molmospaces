@@ -44,7 +44,7 @@ def add_colliders_to_sapien_link(
     colliders_specs = get_collider_specs_from_body(mjs_body)
     for idx in range(len(colliders_specs)):
         col_spec: mj.MjsGeom = colliders_specs[idx]
-        local_pose = Pose(p=tuple(col_spec.pos), q=tuple(col_spec.quat))
+        local_pose = Pose(p=tuple(col_spec.pos), q=tuple(get_orientation(col_spec)))
         physx_material: PhysxMaterial | None = None
         if col_spec.condim == 3:  # noqa: PLR2004
             physx_material = PhysxMaterial(
@@ -137,7 +137,7 @@ def add_visuals_to_sapien_link(
     )
     for idx in range(len(visual_specs)):
         vis_spec: mj.MjsGeom = visual_specs[idx]
-        local_pose = Pose(p=tuple(vis_spec.pos), q=tuple(vis_spec.quat))
+        local_pose = Pose(p=tuple(vis_spec.pos), q=tuple(get_orientation(vis_spec)))
 
         vis_name = vis_spec.name if vis_spec.name != "" else f"{mj_body_name}_visual_{idx}"
 
@@ -205,7 +205,7 @@ def add_visuals_to_sapien_link(
 
 
 class MjcfAssetArticulationLoader(Generic[SceneT]):
-    def __init__(self, scene: SceneT | None = None):
+    def __init__(self, scene: SceneT | None = None, use_colliders_as_visuals: bool = True):
         self._scene: SceneT | None = scene
 
         self._spec: mj.MjSpec | None = None
@@ -214,6 +214,7 @@ class MjcfAssetArticulationLoader(Generic[SceneT]):
         self._num_links: int = 0
         self._num_colliders: int = 0
         self._num_visuals: int = 0
+        self._use_colliders_as_visuals = use_colliders_as_visuals
 
     def set_scene(self, scene: SceneT) -> MjcfAssetArticulationLoader:
         self._scene = scene
@@ -357,7 +358,11 @@ class MjcfAssetArticulationLoader(Generic[SceneT]):
         joints_info: list[MjcfJointInfo] = []
         for jnt_spec in mjs_body.joints:
             assert isinstance(jnt_spec, mj.MjsJoint)
-            limits = np.deg2rad(jnt_spec.range) if self._spec.compiler.degree else jnt_spec.range
+            limits = (
+                np.deg2rad(jnt_spec.range)
+                if self._spec.compiler.degree and jnt_spec.type == mj.mjtJoint.mjJNT_HINGE
+                else jnt_spec.range
+            )
             joints_info.append(
                 MjcfJointInfo(
                     name=jnt_spec.name,
@@ -400,7 +405,8 @@ class MjcfAssetArticulationLoader(Generic[SceneT]):
                         link_body_name,
                         self._model_dir,
                         self._materials,
-                        colliders_are_visuals=not has_any_visuals,
+                        colliders_are_visuals=not has_any_visuals
+                        and self._use_colliders_as_visuals,
                     )
             else:
                 link_builder.set_name(f"{link_body_name}_dummy_{i}")
@@ -413,6 +419,13 @@ class MjcfAssetArticulationLoader(Generic[SceneT]):
                 tf_joint2parent[:3, :3] = R.from_quat(
                     get_orientation(mjs_body), scalar_first=True
                 ).as_matrix()
+                if (frame := mjs_body.frame) is not None:
+                    tf_local_frame = np.eye(4)
+                    tf_local_frame[:3, 3] = frame.pos
+                    tf_local_frame[:3, :3] = R.from_quat(
+                        get_orientation(frame), scalar_first=True
+                    ).as_matrix()
+                    tf_joint2parent = tf_local_frame @ tf_joint2parent
 
             axis = jnt_info.axis
             axis_norm = np.linalg.norm(axis)

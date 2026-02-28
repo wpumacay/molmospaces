@@ -121,22 +121,24 @@ def get_collider_specs_from_body(mjs_body: mj.MjsBody) -> list[mj.MjsGeom]:
     return [geom for geom in mjs_body.geoms if not is_visual(geom)]
 
 
-def get_orientation(body_spec: mj.MjsBody) -> np.ndarray:
-    match body_spec.alt.type:
+def get_orientation(obj_spec: mj.MjsBody | mj.MjsGeom | mj.MjsFrame) -> np.ndarray:
+    match obj_spec.alt.type:
         case mj.mjtOrientation.mjORIENTATION_QUAT:
-            return body_spec.quat.copy()
+            return obj_spec.quat.copy()
         case mj.mjtOrientation.mjORIENTATION_AXISANGLE:
-            axisangle = body_spec.alt.axisangle
+            axisangle = obj_spec.alt.axisangle
             return R.from_rotvec(axisangle[-1] * axisangle[:-1]).as_quat(scalar_first=True)
         case mj.mjtOrientation.mjORIENTATION_XYAXES:
             raise NotImplementedError("Support for xyaxes in orientation is not supported yet")
         case mj.mjtOrientation.mjORIENTATION_ZAXIS:
             raise NotImplementedError("Support for zaxis in orientation is not supported yet")
         case mj.mjtOrientation.mjORIENTATION_EULER:
-            euler = body_spec.alt.euler
+            euler = obj_spec.alt.euler
             return R.from_euler("xyz", euler, degrees=False).as_quat(scalar_first=True)
         case _:
-            raise ValueError(f"Orientation type {body_spec.alt.type} is not valid")
+            raise ValueError(
+                f"Orientation type {obj_spec.alt.type} is not valid, for obj: {obj_spec.name}"
+            )
 
 
 def get_rgba_from_geom(mj_spec: mj.MjSpec, mj_geom: mj.MjsGeom) -> np.ndarray:
