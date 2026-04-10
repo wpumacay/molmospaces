@@ -47,6 +47,15 @@ SOURCE_TO_VERSION = {
             "holodeck-objaverse-val": "20260128",
         },
     },
+    "robots": {
+        "mjcf": {
+            "rby1": "20251224",
+            "rby1m": "20251224",
+            "franka_droid": "20260127",
+            "floating_rum": "20251110",
+            "floating_robotiq": "20260208_retry4",
+        }
+    },
 }
 
 TYPE_TO_PREFIX: dict[str, str] = {
@@ -78,7 +87,16 @@ class DownloadArgs:
         ]
     ] = field(default_factory=list)
 
-    # Path to extract (versioned) downloaded data
+    robots: list[
+        Literal[
+            "rby1",
+            "rby1m",
+            "franka_droid",
+            "floating_rum",
+            "floating_robotiq",
+        ]
+    ] = field(default_factory=list)
+
     cache_dir: Path = DEFAULT_CACHE_DIR
 
     # If not provided, uses HF_TOKEN from environment
@@ -100,7 +118,7 @@ def main() -> int:
     logger.info(f"Symlinking from directory '{args.install_dir}'")
     logger.info(f"Downloading '{args.type}' version of the assets")
 
-    sources_to_version = dict(objects=dict(), scenes=dict())
+    sources_to_version = dict(objects=dict(), scenes=dict(), robots=dict())
     sources_to_version["objects"]["thor"] = SOURCE_TO_VERSION["objects"][args.type]["thor"]
     for dataset_id in args.assets:
         sources_to_version["objects"][dataset_id] = SOURCE_TO_VERSION["objects"][args.type][
@@ -111,6 +129,20 @@ def main() -> int:
         sources_to_version["scenes"][dataset_id] = SOURCE_TO_VERSION["scenes"][args.type][
             dataset_id
         ]
+
+    if sources_robots_for_type := SOURCE_TO_VERSION["robots"].get(args.type):
+        for dataset_id in args.robots:
+            if dataset_id in sources_robots_for_type:
+                sources_to_version["robots"][dataset_id] = sources_robots_for_type[dataset_id]
+
+    cache_dir = args.cache_dir / args.type
+    cache_lock_file = cache_dir / ".lock"
+    if cache_lock_file.is_file():
+        cache_lock_file.unlink()
+
+    install_lock_file = args.install_dir / ".lock"
+    if install_lock_file.is_file():
+        install_lock_file.unlink()
 
     manager = ResourceManager(
         remote_storage=R2RemoteStorage(f"{TYPE_TO_PREFIX[args.type]}-thor-resources")

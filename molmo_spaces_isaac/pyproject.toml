@@ -10,7 +10,7 @@ dependencies = [
     "usd-exchange",
     "tyro",
     "numpy-stl",
-    "tinyobjloader>=2.0.0rc13",
+    "tinyobjloader==2.0.0rc13",
     "p_tqdm",
     "scipy",
     "msgspec",

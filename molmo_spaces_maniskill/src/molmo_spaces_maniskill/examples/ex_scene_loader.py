@@ -5,7 +5,7 @@ import numpy as np
 import sapien
 import tyro
 
-from molmo_spaces_maniskill.assets.loader import MjcfSceneLoader
+from molmo_spaces_maniskill.assets.scene_loader import MjcfSceneLoader
 
 
 @dataclass

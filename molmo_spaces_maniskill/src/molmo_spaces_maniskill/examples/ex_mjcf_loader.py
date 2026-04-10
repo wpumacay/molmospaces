@@ -8,7 +8,8 @@ import transforms3d as t3d
 import tyro
 from sapien.physx import PhysxArticulation
 
-from molmo_spaces_maniskill.assets.loader import MjcfAssetActorLoader, MjcfAssetArticulationLoader
+from molmo_spaces_maniskill.assets.actor_loader import MjcfAssetActorLoader
+from molmo_spaces_maniskill.assets.articulation_loader import MjcfAssetArticulationLoader
 
 
 @dataclass
