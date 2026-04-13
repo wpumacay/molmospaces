@@ -135,7 +135,7 @@ class BiI2RTYam(MolmoSpacesAgent):
 @register_agent()
 class BiI2RTYamLinear(MolmoSpacesAgent):
     uid = "bi-i2rt-yam-linear"
-    mjcF_path = "assets/mjcf/robots/i2rt_yam/bimanual_yam_linear.xml"
+    mjcf_path = "assets/mjcf/robots/i2rt_yam/bimanual_yam_linear.xml"
 
 
 @register_agent()

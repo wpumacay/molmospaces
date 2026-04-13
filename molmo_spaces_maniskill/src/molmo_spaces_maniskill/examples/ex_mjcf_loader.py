@@ -48,6 +48,9 @@ def main() -> int:
         print(f"Given mjcf model @ {args.filepath.as_posix()} doesn't exist")
         return 1
 
+    # sapien.render.set_camera_shader_dir("custom")
+    # sapien.render.set_viewer_shader_dir("custom")
+
     scene = sapien.Scene()
     scene.set_timestep(0.002)
 
@@ -82,7 +85,26 @@ def main() -> int:
     else:
         viewer.focus_entity(entity)
 
-    scene.set_ambient_light([0.5, 0.5, 0.5])
+    # # material = RenderMaterial(base_color=[0.234375, 0.34090910000000002, 0.625, 1])
+    # material = RenderMaterial(
+    #     emission=[0.234375 * 0, 0.34090910000000002 * 0, 0.625 * 0, 1],
+    #     base_color=[0.234375, 0.34090910000000002, 0.625, 1],
+    #     specular=0.5,
+    #     roughness=1.0,
+    #     metallic=0.5,
+    # )
+    #
+    # builder = scene.create_actor_builder()
+    # builder.add_box_visual(
+    #     pose=sapien.Pose(p=[1.0, 0.0, 0.5]),
+    #     half_size=(0.25, 0.25, 0.25),
+    #     # material=(0.234375, 0.34090910000000002, 0.625),
+    #     material=material,
+    #     name="vis-cube",
+    # )
+    # builder.build_static()
+
+    scene.set_ambient_light([0.2, 0.2, 0.2])
     scene.add_directional_light([0, 1, -1], [0.5, 0.5, 0.5], shadow=True)
 
     running = True
