@@ -4,6 +4,7 @@ from pathlib import Path
 import mujoco as mj
 import numpy as np
 import trimesh
+import tyro
 from tqdm import tqdm
 
 MJCF_DIR = Path(__file__).parent.parent / "assets" / "mjcf"
@@ -13,6 +14,11 @@ MJCF_SCENES_ITHOR_DIR = MJCF_DIR / "scenes" / "ithor"
 MJC_VERSION = tuple(map(int, mj.__version__.split(".")))
 
 COLLIDERS_CLASSNAMES = ("__DYNAMIC_MJT__", "__STRUCTURAL_MJT__", "__ARTICULABLE_DYNAMIC_MJT__")
+
+@dataclass
+class Args:
+    thor_assets_dir: Path = MJCF_ASSETS_THOR_DIR
+    scenes_ithor_dir: Path = MJCF_SCENES_ITHOR_DIR
 
 def resize_thor_asset(model_path: Path) -> None:
     modified = False
@@ -89,8 +95,18 @@ def update_scenes_scales(scene_path: Path) -> None:
         print(f"[ERROR]: couldn't resize scene '{scene_path.stem}', error: {e}")
 
 def main() -> int:
+    args = tyro.cli(Args)
+
+    if not args.thor_assets_dir.is_dir():
+        print(f"thor assets dir @ {args.thor_assets_dir} is not a valid directory")
+        return 1
+
+    if not args.scenes_ithor_dir.is_dir():
+        print(f"scenes ithor dir @ {args.scenes_ithor_dir} is not a valid directory")
+        return 1
+
     models_filepaths: list[Path] = []
-    for candidate_xml in MJCF_ASSETS_THOR_DIR.rglob("*.xml"):
+    for candidate_xml in args.thor_assets_dir.rglob("*.xml"):
         if any(substr in candidate_xml.stem for substr in ("_old", "_fix", "_upt", "_orig", "_sc")):
             continue
         if "_mesh" not in candidate_xml.stem:
@@ -102,7 +118,7 @@ def main() -> int:
 
 
     scenes_filepaths: list[Path] = []
-    for candidate_xml in MJCF_SCENES_ITHOR_DIR.glob("*.xml"):
+    for candidate_xml in args.scenes_ithor_dir.glob("*.xml"):
         if any(substr in candidate_xml.stem for substr in ("_old", "_fix", "_upt", "_orig", "_sc")):
             continue
         scenes_filepaths.append(candidate_xml)
