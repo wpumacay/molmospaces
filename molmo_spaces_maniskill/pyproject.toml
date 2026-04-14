@@ -13,6 +13,7 @@ dependencies = [
     "setuptools==80.8.0",
     "lmdb~=1.7.5",
     "zstandard~=0.25.0",
+    "molmospaces-resources==0.0.1b4",
 ]
 
 [build-system]

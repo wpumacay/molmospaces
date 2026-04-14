@@ -20,7 +20,12 @@ def main() -> int:
         print(f"[ERROR]: given scene file '{args.scene_file}' is not a valid file")
         return 1
 
-    env = gym.make("MolmoSpacesEnv-v0", render_mode="human", scene_file=args.scene_file)
+    env = gym.make(
+        "MolmoSpacesEnv-v0",
+        render_mode="human",
+        scene_file=args.scene_file,
+        shader_dir="default-mj",
+    )
     if not isinstance(env.unwrapped, MolmoSpacesEnv):
         print("[WARN]: env wrapper should be of type 'MolmoSpacesEnv'")
 

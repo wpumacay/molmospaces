@@ -180,10 +180,10 @@ def parse_materials(spec: mj.MjSpec, model_dir: Path) -> dict[str, RenderMateria
 
         rgba = mat_spec.rgba.copy()
         em = mat_spec.emission
-        emission_arr = [rgba[0] * em, rgba[1] * em, rgba[2] * em, 1]
+        emission_arr = [rgba[0].item() * em, rgba[1].item() * em, rgba[2].item() * em, 1]
         render_material = RenderMaterial(
             emission=emission_arr,
-            base_color=mat_spec.rgba.tolist(),
+            base_color=rgba.tolist(),
             specular=mat_spec.specular,
             roughness=1.0 - mat_spec.reflectance,
             metallic=mat_spec.shininess,
@@ -194,8 +194,12 @@ def parse_materials(spec: mj.MjSpec, model_dir: Path) -> dict[str, RenderMateria
         if texture_id != "":
             if texture_id in textures_info:
                 texture_filepath = textures_info[texture_id].file
-                if texture_filepath.exists() and texture_filepath.is_file():
-                    texture = RenderTexture2D(filename=texture_filepath.as_posix())
+                if texture_filepath.is_file():
+                    texture = RenderTexture2D(
+                        filename=texture_filepath.as_posix(),
+                        address_mode="repeat",
+                        srgb=True,
+                    )
 
         if texture is not None:
             render_material.base_color_texture = texture
