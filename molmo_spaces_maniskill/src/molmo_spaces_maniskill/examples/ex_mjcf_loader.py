@@ -48,6 +48,7 @@ def main() -> int:
         print(f"Given mjcf model @ {args.filepath.as_posix()} doesn't exist")
         return 1
 
+    # TODO(wilbert): use custom shader dir from mani_skill with mujoco-like support
     # sapien.render.set_camera_shader_dir("custom")
     # sapien.render.set_viewer_shader_dir("custom")
 

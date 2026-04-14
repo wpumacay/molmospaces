@@ -24,7 +24,7 @@ def main() -> int:
         "MolmoSpacesEnv-v0",
         render_mode="human",
         scene_file=args.scene_file,
-        # shader_dir="custom",
+        shader_dir="default-mj",
     )
     if not isinstance(env.unwrapped, MolmoSpacesEnv):
         print("[WARN]: env wrapper should be of type 'MolmoSpacesEnv'")
