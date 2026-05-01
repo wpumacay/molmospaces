@@ -9,6 +9,7 @@ from transforms3d.euler import euler2quat
 from mani_skill.agents.robots import Panda, PandaWristCam
 from mani_skill.sensors.camera import CameraConfig
 from mani_skill.utils.registration import register_env
+from mani_skill.utils.structs import Pose
 from mani_skill.utils.structs.types import GPUMemoryConfig, SimConfig
 
 from molmo_spaces_maniskill import MOLMOSPACES_MJCF_SCENES_DIR
@@ -16,9 +17,11 @@ from molmo_spaces_maniskill.core.env import MolmoSpacesEnv
 from molmo_spaces_maniskill.molmoact2.robots.fr3_wristcam import FR3WristCam as FR3RobotiqWristCam
 
 
-# FloorPlan2 has 13 articulated drawers; pick a source and a destination.
-SOURCE_DRAWER_NAME = "drawer_4f46a7c95efbc7c4096bd1cb7874b733_1_0_0"
-DEST_DRAWER_NAME = "drawer_5d94906c907342962358781e87f4d24d_1_0_0"
+# FloorPlan2 has 13 drawers. We pick two stacked drawers in the same column
+# (both at world xy ~(+1.50, -0.02), differing only in z) so a fixed-base FR3
+# can reach both from a single base pose.
+SOURCE_DRAWER_NAME = "drawer_9e590c8146f9ed8602524ab20ee09fa1_1_0_0"  # at z=0.43
+DEST_DRAWER_NAME = "drawer_dad0763c6a20aeca8116db3e61be50a9_1_0_0"   # at z=0.60
 
 DRAWER_INIT_OPEN_QPOS = 0.26
 
@@ -117,8 +120,10 @@ class DroidKitchenDrawerToDrawerForkEnv(MolmoSpacesEnv):
                 ]
             )
             self.agent.robot.set_qpos(init_qpos)
+            # Both drawers are stacked at world (+1.50, -0.02) at different z;
+            # robot 0.65 m in front facing +x reaches both.
             self.agent.robot.set_pose(
-                sapien.Pose(p=[0.6, -1.7, 0.5], q=euler2quat(0, 0, -np.pi / 2))
+                sapien.Pose(p=[0.85, -0.02, 0.20], q=euler2quat(0, 0, 0))
             )
             for name, actor in self._env_actors.items():
                 if hasattr(actor, "initial_pose"):
@@ -131,6 +136,15 @@ class DroidKitchenDrawerToDrawerForkEnv(MolmoSpacesEnv):
                 qpos = self.drawer_dst.get_qpos()
                 qpos[...] = 0.0
                 self.drawer_dst.set_qpos(qpos)
+            # Place the fork inside the (open) source drawer so the agent must
+            # transfer it to the destination drawer.
+            if self.fork is not None and self.drawer_src is not None:
+                src_pos = self.drawer_src.pose.p
+                fork_quat = self.fork.pose.q.clone()
+                fork_pos = src_pos.clone()
+                fork_pos[..., 0] = fork_pos[..., 0] - 0.05  # nudged toward robot inside the open drawer
+                fork_pos[..., 2] = fork_pos[..., 2] + 0.03
+                self.fork.set_pose(Pose.create_from_pq(fork_pos, fork_quat))
 
     def _drawer_qpos(self, drawer) -> torch.Tensor:
         if drawer is None:

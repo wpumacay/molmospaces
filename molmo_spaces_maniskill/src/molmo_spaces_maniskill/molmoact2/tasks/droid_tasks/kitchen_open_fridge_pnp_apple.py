@@ -9,6 +9,7 @@ from transforms3d.euler import euler2quat
 from mani_skill.agents.robots import Panda, PandaWristCam
 from mani_skill.sensors.camera import CameraConfig
 from mani_skill.utils.registration import register_env
+from mani_skill.utils.structs import Pose
 from mani_skill.utils.structs.types import GPUMemoryConfig, SimConfig
 
 from molmo_spaces_maniskill import MOLMOSPACES_MJCF_SCENES_DIR
@@ -109,8 +110,9 @@ class DroidKitchenOpenFridgePnpAppleEnv(MolmoSpacesEnv):
                 ]
             )
             self.agent.robot.set_qpos(init_qpos)
+            # FP2 fridge is at (-1.76, 0.0, 0.9). Robot 0.65 m in front, facing -x.
             self.agent.robot.set_pose(
-                sapien.Pose(p=[0.6, -1.7, 0.5], q=euler2quat(0, 0, -np.pi / 2))
+                sapien.Pose(p=[-1.10, 0.0, 0.50], q=euler2quat(0, 0, np.pi))
             )
             for name, actor in self._env_actors.items():
                 if hasattr(actor, "initial_pose"):
@@ -119,6 +121,10 @@ class DroidKitchenOpenFridgePnpAppleEnv(MolmoSpacesEnv):
                 qpos = self.fridge.get_qpos()
                 qpos[...] = 0.0
                 self.fridge.set_qpos(qpos)
+            if self.apple is not None:
+                apple_quat = self.apple.pose.q.clone()
+                apple_pos = torch.tensor([[-0.80, 0.0, 0.95]], device=self.device).expand(self.num_envs, 3).clone()
+                self.apple.set_pose(Pose.create_from_pq(apple_pos, apple_quat))
 
     def _door_qpos(self) -> torch.Tensor:
         if self.fridge is None:

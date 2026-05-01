@@ -9,6 +9,7 @@ from transforms3d.euler import euler2quat
 from mani_skill.agents.robots import Panda, PandaWristCam
 from mani_skill.sensors.camera import CameraConfig
 from mani_skill.utils.registration import register_env
+from mani_skill.utils.structs import Pose
 from mani_skill.utils.structs.types import GPUMemoryConfig, SimConfig
 
 from molmo_spaces_maniskill import MOLMOSPACES_MJCF_SCENES_DIR
@@ -123,6 +124,21 @@ class DroidKitchenSetTableEnv(MolmoSpacesEnv):
             for name, actor in self._env_actors.items():
                 if hasattr(actor, "initial_pose"):
                     actor.set_pose(actor.initial_pose)
+
+            # Spawn all four items in a starting row in the robot's workspace,
+            # NOT in the goal arrangement — the task is to arrange them.
+            anchor_xy_z = [
+                (self.plate, [0.55, -0.90, 1.30]),
+                (self.fork,  [0.40, -0.85, 1.30]),
+                (self.knife, [0.40, -0.90, 1.30]),
+                (self.cup,   [0.40, -0.95, 1.30]),
+            ]
+            for actor, p in anchor_xy_z:
+                if actor is None:
+                    continue
+                q = actor.pose.q.clone()
+                pos = torch.tensor([p], device=self.device).expand(self.num_envs, 3).clone()
+                actor.set_pose(Pose.create_from_pq(pos, q))
 
     def _placement_correct(self, item, direction_xy, expect_offset_x, expect_offset_y) -> torch.Tensor:
         """Item should be at plate_pos + (expect_offset_x, expect_offset_y) within a tolerance."""

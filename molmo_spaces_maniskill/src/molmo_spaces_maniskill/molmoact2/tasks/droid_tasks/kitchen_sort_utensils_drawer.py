@@ -9,6 +9,7 @@ from transforms3d.euler import euler2quat
 from mani_skill.agents.robots import Panda, PandaWristCam
 from mani_skill.sensors.camera import CameraConfig
 from mani_skill.utils.registration import register_env
+from mani_skill.utils.structs import Pose
 from mani_skill.utils.structs.types import GPUMemoryConfig, SimConfig
 
 from molmo_spaces_maniskill import MOLMOSPACES_MJCF_SCENES_DIR
@@ -130,6 +131,20 @@ class DroidKitchenSortUtensilsDrawerEnv(MolmoSpacesEnv):
                 qpos = self.drawer.get_qpos()
                 qpos[..., 0] = DRAWER_INIT_OPEN_QPOS
                 self.drawer.set_qpos(qpos)
+
+            # Default fork/spoon spawns are across the kitchen (~3 m from the
+            # robot). Place them in workspace next to the open drawer.
+            utensil_pos = [
+                (self.fork,  [0.50, -1.40, 0.85]),
+                (self.knife, [0.55, -1.30, 0.85]),
+                (self.spoon, [0.60, -1.20, 0.85]),
+            ]
+            for actor, p in utensil_pos:
+                if actor is None:
+                    continue
+                q = actor.pose.q.clone()
+                pos = torch.tensor([p], device=self.device).expand(self.num_envs, 3).clone()
+                actor.set_pose(Pose.create_from_pq(pos, q))
 
     def _drawer_qpos(self) -> torch.Tensor:
         if self.drawer is None:

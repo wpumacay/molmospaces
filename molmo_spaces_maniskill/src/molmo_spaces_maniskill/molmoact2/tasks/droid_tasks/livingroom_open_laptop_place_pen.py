@@ -9,6 +9,7 @@ from transforms3d.euler import euler2quat
 from mani_skill.agents.robots import Panda, PandaWristCam
 from mani_skill.sensors.camera import CameraConfig
 from mani_skill.utils.registration import register_env
+from mani_skill.utils.structs import Pose
 from mani_skill.utils.structs.types import GPUMemoryConfig, SimConfig
 
 from molmo_spaces_maniskill import MOLMOSPACES_MJCF_SCENES_DIR
@@ -114,8 +115,10 @@ class DroidLivingRoomOpenLaptopPlacePenEnv(MolmoSpacesEnv):
                 ]
             )
             self.agent.robot.set_qpos(init_qpos)
+            # FP201 laptop is at (-1.70, 1.66, 0.72). Robot 0.65 m in front
+            # along +x, facing -x toward the laptop.
             self.agent.robot.set_pose(
-                sapien.Pose(p=[0.5, -1.0, 0.5], q=euler2quat(0, 0, 0))
+                sapien.Pose(p=[-1.05, 1.66, 0.30], q=euler2quat(0, 0, np.pi))
             )
             for name, actor in self._env_actors.items():
                 if hasattr(actor, "initial_pose"):
@@ -124,6 +127,11 @@ class DroidLivingRoomOpenLaptopPlacePenEnv(MolmoSpacesEnv):
                 qpos = self.laptop.get_qpos()
                 qpos[...] = 0.0
                 self.laptop.set_qpos(qpos)
+            # Pen default spawn is far across the room.
+            if self.pen is not None:
+                pen_quat = self.pen.pose.q.clone()
+                pen_pos = torch.tensor([[-1.30, 1.66, 0.55]], device=self.device).expand(self.num_envs, 3).clone()
+                self.pen.set_pose(Pose.create_from_pq(pen_pos, pen_quat))
 
     def _lid_qpos(self) -> torch.Tensor:
         if self.laptop is None:

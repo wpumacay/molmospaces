@@ -9,6 +9,7 @@ from transforms3d.euler import euler2quat
 from mani_skill.agents.robots import Panda, PandaWristCam
 from mani_skill.sensors.camera import CameraConfig
 from mani_skill.utils.registration import register_env
+from mani_skill.utils.structs import Pose
 from mani_skill.utils.structs.types import GPUMemoryConfig, SimConfig
 
 from molmo_spaces_maniskill import MOLMOSPACES_MJCF_SCENES_DIR
@@ -109,8 +110,10 @@ class DroidKitchenOpenDishwasherPnpPlateEnv(MolmoSpacesEnv):
                 ]
             )
             self.agent.robot.set_qpos(init_qpos)
+            # FP1 dishwasher is at (-1.76, -0.72, 0.0) — robot 0.65 m in front,
+            # facing -x so the door swings toward the robot.
             self.agent.robot.set_pose(
-                sapien.Pose(p=[0.6, -1.7, 0.5], q=euler2quat(0, 0, -np.pi / 2))
+                sapien.Pose(p=[-1.10, -0.72, 0.50], q=euler2quat(0, 0, np.pi))
             )
             for name, actor in self._env_actors.items():
                 if hasattr(actor, "initial_pose"):
@@ -119,6 +122,10 @@ class DroidKitchenOpenDishwasherPnpPlateEnv(MolmoSpacesEnv):
                 qpos = self.dishwasher.get_qpos()
                 qpos[...] = 0.0
                 self.dishwasher.set_qpos(qpos)
+            if self.plate is not None:
+                plate_quat = self.plate.pose.q.clone()
+                plate_pos = torch.tensor([[-0.80, -0.72, 0.95]], device=self.device).expand(self.num_envs, 3).clone()
+                self.plate.set_pose(Pose.create_from_pq(plate_pos, plate_quat))
 
     def _door_qpos(self) -> torch.Tensor:
         if self.dishwasher is None:

@@ -9,6 +9,7 @@ from transforms3d.euler import euler2quat
 from mani_skill.agents.robots import Panda, PandaWristCam
 from mani_skill.sensors.camera import CameraConfig
 from mani_skill.utils.registration import register_env
+from mani_skill.utils.structs import Pose
 from mani_skill.utils.structs.types import GPUMemoryConfig, SimConfig
 
 from molmo_spaces_maniskill import MOLMOSPACES_MJCF_SCENES_DIR
@@ -125,10 +126,11 @@ class DroidKitchenHeatMugMicrowaveEnv(MolmoSpacesEnv):
                 ]
             )
             self.agent.robot.set_qpos(init_qpos)
-            # Robot positioned in front of FloorPlan3 microwave (world ~[1.0, -2.16, 1.49]).
+            # FP3 microwave is at world ~(0.99, -2.16, 1.49); place robot 0.7 m
+            # in front along +y, with z below the microwave so the arm reaches up.
             self.agent.robot.set_pose(
                 sapien.Pose(
-                    p=[0.5, -1.6, 1.0],
+                    p=[0.99, -1.50, 1.15],
                     q=euler2quat(0, 0, -np.pi / 2),
                 )
             )
@@ -141,6 +143,13 @@ class DroidKitchenHeatMugMicrowaveEnv(MolmoSpacesEnv):
                 qpos = self.microwave.get_qpos()
                 qpos[...] = 0.0
                 self.microwave.set_qpos(qpos)
+
+            # The default mug spawn in FP3 is across the room (~3 m away) — drop
+            # it onto the counter directly in front of the robot so it's reachable.
+            if self.mug is not None:
+                mug_quat = self.mug.pose.q.clone()
+                mug_pos = torch.tensor([[0.99, -1.20, 1.30]], device=self.device).expand(self.num_envs, 3).clone()
+                self.mug.set_pose(Pose.create_from_pq(mug_pos, mug_quat))
 
     def _door_qpos(self) -> torch.Tensor:
         if self.microwave is None:

@@ -9,6 +9,7 @@ from transforms3d.euler import euler2quat
 from mani_skill.agents.robots import Panda, PandaWristCam
 from mani_skill.sensors.camera import CameraConfig
 from mani_skill.utils.registration import register_env
+from mani_skill.utils.structs import Pose
 from mani_skill.utils.structs.types import GPUMemoryConfig, SimConfig
 
 from molmo_spaces_maniskill import MOLMOSPACES_MJCF_SCENES_DIR
@@ -111,8 +112,10 @@ class DroidBathroomOpenToiletDropPaperEnv(MolmoSpacesEnv):
                 ]
             )
             self.agent.robot.set_qpos(init_qpos)
+            # FP415 toilet is at (-0.41, -0.55, 0.52). Robot 0.6 m in front
+            # along +x, facing -x toward the toilet.
             self.agent.robot.set_pose(
-                sapien.Pose(p=[0.5, -1.5, 0.5], q=euler2quat(0, 0, -np.pi / 2))
+                sapien.Pose(p=[0.20, -0.55, 0.10], q=euler2quat(0, 0, np.pi))
             )
             for name, actor in self._env_actors.items():
                 if hasattr(actor, "initial_pose"):
@@ -121,6 +124,11 @@ class DroidBathroomOpenToiletDropPaperEnv(MolmoSpacesEnv):
                 qpos = self.toilet.get_qpos()
                 qpos[...] = 0.0
                 self.toilet.set_qpos(qpos)
+            # Toilet paper default spawn is across the bathroom; bring it in.
+            if self.toilet_paper is not None:
+                tp_quat = self.toilet_paper.pose.q.clone()
+                tp_pos = torch.tensor([[-0.05, -0.55, 0.50]], device=self.device).expand(self.num_envs, 3).clone()
+                self.toilet_paper.set_pose(Pose.create_from_pq(tp_pos, tp_quat))
 
     def _lid_qpos(self) -> torch.Tensor:
         if self.toilet is None:

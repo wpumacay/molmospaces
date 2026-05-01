@@ -9,6 +9,7 @@ from transforms3d.euler import euler2quat
 from mani_skill.agents.robots import Panda, PandaWristCam
 from mani_skill.sensors.camera import CameraConfig
 from mani_skill.utils.registration import register_env
+from mani_skill.utils.structs import Pose
 from mani_skill.utils.structs.types import GPUMemoryConfig, SimConfig
 
 from molmo_spaces_maniskill import MOLMOSPACES_MJCF_SCENES_DIR
@@ -108,12 +109,19 @@ class DroidKitchenPourBottlePotEnv(MolmoSpacesEnv):
                 ]
             )
             self.agent.robot.set_qpos(init_qpos)
+            # Same pose as kitchen_pour_bottle_cup so the bottle is already in
+            # workspace (~0.7 m away). Pot's default spawn is across the room,
+            # so we override it next.
             self.agent.robot.set_pose(
                 sapien.Pose(p=[0.3, -0.9, 1.2], q=euler2quat(0, 0, 0))
             )
             for name, actor in self._env_actors.items():
                 if hasattr(actor, "initial_pose"):
                     actor.set_pose(actor.initial_pose)
+            if self.pot is not None:
+                pot_quat = self.pot.pose.q.clone()
+                pot_pos = torch.tensor([[0.55, -0.90, 1.40]], device=self.device).expand(self.num_envs, 3).clone()
+                self.pot.set_pose(Pose.create_from_pq(pot_pos, pot_quat))
 
     def _bottle_pouring_into_pot(self) -> torch.Tensor:
         if self.bottle is None or self.pot is None:
