@@ -40,6 +40,11 @@ class DroidKitchenOpenFridgePnpAppleEnv(MolmoSpacesEnv):
     apple_z_below_thresh = 0.50
     apple_z_above_thresh = 0.50
 
+    # FP2 fridge has 4 active joints. [0] and [1] are prismatic interior drawers;
+    # [2] and [3] are revolute_unwrapped doors with range [-pi/2, 0]. We track
+    # the main door at index 2.
+    DOOR_JOINT_INDEX = 2
+
     def __init__(
         self,
         *args,
@@ -129,7 +134,7 @@ class DroidKitchenOpenFridgePnpAppleEnv(MolmoSpacesEnv):
     def _door_qpos(self) -> torch.Tensor:
         if self.fridge is None:
             return torch.zeros(self.num_envs, device=self.device)
-        return self.fridge.get_qpos()[..., 0]
+        return self.fridge.get_qpos()[..., self.DOOR_JOINT_INDEX]
 
     def _apple_inside_fridge(self) -> torch.Tensor:
         if self.fridge is None or self.apple is None:
@@ -147,7 +152,8 @@ class DroidKitchenOpenFridgePnpAppleEnv(MolmoSpacesEnv):
     def evaluate(self):
         door_qpos = self._door_qpos()
         apple_inside = self._apple_inside_fridge()
-        door_closed = door_qpos < self.door_closed_thresh
+        # Door qpos is in [-pi/2, 0]; closed = magnitude near 0.
+        door_closed = torch.abs(door_qpos) < self.door_closed_thresh
         success = apple_inside & door_closed
         return {
             "success": success,

@@ -121,8 +121,10 @@ class DroidKitchenSortUtensilsDrawerEnv(MolmoSpacesEnv):
                 ]
             )
             self.agent.robot.set_qpos(init_qpos)
+            # Drawer at world (+0.81, -1.16). Robot at (+0.81, -0.50) facing -y
+            # places the drawer ~0.66 m straight ahead.
             self.agent.robot.set_pose(
-                sapien.Pose(p=[0.6, -1.7, 0.5], q=euler2quat(0, 0, -np.pi / 2))
+                sapien.Pose(p=[0.81, -0.50, 0.50], q=euler2quat(0, 0, -np.pi / 2))
             )
             for name, actor in self._env_actors.items():
                 if hasattr(actor, "initial_pose"):
@@ -134,10 +136,11 @@ class DroidKitchenSortUtensilsDrawerEnv(MolmoSpacesEnv):
 
             # Default fork/spoon spawns are across the kitchen (~3 m from the
             # robot). Place them in workspace next to the open drawer.
+            # Spawn utensils in front of robot facing -y (so y < robot_y = -0.50).
             utensil_pos = [
-                (self.fork,  [0.50, -1.40, 0.85]),
-                (self.knife, [0.55, -1.30, 0.85]),
-                (self.spoon, [0.60, -1.20, 0.85]),
+                (self.fork,  [0.71, -0.85, 0.85]),
+                (self.knife, [0.81, -0.85, 0.85]),
+                (self.spoon, [0.91, -0.85, 0.85]),
             ]
             for actor, p in utensil_pos:
                 if actor is None:
