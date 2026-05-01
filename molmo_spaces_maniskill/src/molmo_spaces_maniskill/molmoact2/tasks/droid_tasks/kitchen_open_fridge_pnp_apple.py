@@ -128,7 +128,9 @@ class DroidKitchenOpenFridgePnpAppleEnv(MolmoSpacesEnv):
                 self.fridge.set_qpos(qpos)
             if self.apple is not None:
                 apple_quat = self.apple.pose.q.clone()
-                apple_pos = torch.tensor([[-0.80, 0.0, 0.95]], device=self.device).expand(self.num_envs, 3).clone()
+                # Drop apple right above the fridge so it lands on top of the
+                # fridge body (~z=0.95 plus a drop) instead of bouncing away.
+                apple_pos = torch.tensor([[-1.65, 0.0, 1.05]], device=self.device).expand(self.num_envs, 3).clone()
                 self.apple.set_pose(Pose.create_from_pq(apple_pos, apple_quat))
 
     def _door_qpos(self) -> torch.Tensor:

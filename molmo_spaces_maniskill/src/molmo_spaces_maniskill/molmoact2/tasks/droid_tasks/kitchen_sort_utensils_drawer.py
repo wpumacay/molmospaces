@@ -136,11 +136,13 @@ class DroidKitchenSortUtensilsDrawerEnv(MolmoSpacesEnv):
 
             # Default fork/spoon spawns are across the kitchen (~3 m from the
             # robot). Place them in workspace next to the open drawer.
-            # Spawn utensils in front of robot facing -y (so y < robot_y = -0.50).
+            # Spawn utensils on the cabinet top above the drawer (drawer is
+            # at z=0.48; cabinet face/top is around z=0.80). Earlier values
+            # had y too shallow so utensils free-fell to the floor.
             utensil_pos = [
-                (self.fork,  [0.71, -0.85, 0.85]),
-                (self.knife, [0.81, -0.85, 0.85]),
-                (self.spoon, [0.91, -0.85, 0.85]),
+                (self.fork,  [0.71, -1.16, 0.95]),
+                (self.knife, [0.81, -1.16, 0.95]),
+                (self.spoon, [0.91, -1.16, 0.95]),
             ]
             for actor, p in utensil_pos:
                 if actor is None:

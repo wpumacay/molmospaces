@@ -125,13 +125,14 @@ class DroidKitchenSetTableEnv(MolmoSpacesEnv):
                 if hasattr(actor, "initial_pose"):
                     actor.set_pose(actor.initial_pose)
 
-            # Spawn all four items in a starting row in the robot's workspace,
-            # NOT in the goal arrangement — the task is to arrange them.
+            # Spawn items in a single x-line at fixed y=-1.05 (FP3 counter)
+            # with 0.18 m horizontal spacing and tiny z stagger so nothing
+            # bounces off a still-falling neighbor.
             anchor_xy_z = [
-                (self.plate, [0.55, -0.90, 1.30]),
-                (self.fork,  [0.40, -0.85, 1.30]),
-                (self.knife, [0.40, -0.90, 1.30]),
-                (self.cup,   [0.40, -0.95, 1.30]),
+                (self.plate, [0.40, -1.05, 1.45]),
+                (self.fork,  [0.58, -1.05, 1.50]),
+                (self.knife, [0.76, -1.05, 1.55]),
+                (self.cup,   [0.45, -0.90, 1.60]),
             ]
             for actor, p in anchor_xy_z:
                 if actor is None:

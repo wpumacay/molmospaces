@@ -124,7 +124,10 @@ class DroidKitchenOpenDishwasherPnpPlateEnv(MolmoSpacesEnv):
                 self.dishwasher.set_qpos(qpos)
             if self.plate is not None:
                 plate_quat = self.plate.pose.q.clone()
-                plate_pos = torch.tensor([[-0.80, -0.72, 0.95]], device=self.device).expand(self.num_envs, 3).clone()
+                # Drop plate right above the dishwasher front (its top sits at
+                # roughly z=0.85 in FP1) so it lands on the dishwasher housing
+                # within easy reach.
+                plate_pos = torch.tensor([[-1.65, -0.72, 1.00]], device=self.device).expand(self.num_envs, 3).clone()
                 self.plate.set_pose(Pose.create_from_pq(plate_pos, plate_quat))
 
     def _door_qpos(self) -> torch.Tensor:

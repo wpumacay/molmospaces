@@ -125,11 +125,12 @@ class DroidBathroomOpenToiletDropPaperEnv(MolmoSpacesEnv):
                 qpos = self.toilet.get_qpos()
                 qpos[...] = 0.0
                 self.toilet.set_qpos(qpos)
-            # Toilet paper default spawn is across the bathroom; bring it in
-            # front of the robot, between robot (y=-1.20) and toilet (y=-0.55).
+            # Toilet paper default spawn is across the bathroom. Drop it onto
+            # the closed toilet seat (lid surface is around z=0.70) so it's
+            # within reach instead of free-falling to the floor.
             if self.toilet_paper is not None:
                 tp_quat = self.toilet_paper.pose.q.clone()
-                tp_pos = torch.tensor([[-0.41, -0.90, 0.60]], device=self.device).expand(self.num_envs, 3).clone()
+                tp_pos = torch.tensor([[-0.41, -0.55, 0.85]], device=self.device).expand(self.num_envs, 3).clone()
                 self.toilet_paper.set_pose(Pose.create_from_pq(tp_pos, tp_quat))
 
     def _lid_qpos(self) -> torch.Tensor:
