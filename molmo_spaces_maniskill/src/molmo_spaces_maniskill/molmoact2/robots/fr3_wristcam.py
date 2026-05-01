@@ -1,4 +1,5 @@
 from copy import deepcopy
+from pathlib import Path
 
 import numpy as np
 import sapien
@@ -14,7 +15,7 @@ from mani_skill.sensors.camera import CameraConfig
 
 from molmo_spaces_maniskill import MOLMOSPACES_ASSETS_DIR
 
-FR3_DESCRIPTION_PATH = "/home/shuo/research/molmospaces/molmo_spaces_maniskill/src/molmo_spaces_maniskill/molmoact2/assets/franka_description"
+FR3_DESCRIPTION_PATH = str(Path(__file__).resolve().parent.parent / "assets" / "franka_description")
 
 @register_agent()
 class FR3WristCam(BaseAgent):
